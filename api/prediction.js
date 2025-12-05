@@ -1,6 +1,8 @@
 const express = require('express');
-const fetch = require('node-fetch');
 const router = express.Router();
+
+// Use node-fetch v2 for compatibility with CommonJS
+const fetch = require('node-fetch');
 
 /**
  * Helper function to make OpenAI API requests

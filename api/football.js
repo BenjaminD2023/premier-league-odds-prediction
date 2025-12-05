@@ -1,6 +1,8 @@
 const express = require('express');
-const fetch = require('node-fetch');
 const router = express.Router();
+
+// Use node-fetch v2 for compatibility with CommonJS
+const fetch = require('node-fetch');
 
 // API-Football base configuration
 const FOOTBALL_API_BASE = 'https://api-football-v1.p.rapidapi.com/v3';

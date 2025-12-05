@@ -15,6 +15,8 @@ An AI-powered web application that demonstrates how modern Large Language Models
 Before running this application, you'll need:
 
 1. **Node.js** (version 14 or higher)
+   - Node.js 18+ is recommended for built-in fetch API support
+   - The app currently uses node-fetch v2 for compatibility
 2. **API-Football API Key** from RapidAPI
 3. **OpenAI API Key** from OpenAI Platform
 

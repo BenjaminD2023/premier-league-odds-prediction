@@ -13,7 +13,31 @@ function hideLoading() {
 }
 
 function showError(message) {
-    alert(`Error: ${message}`);
+    // Create a toast notification instead of alert
+    const toast = document.createElement('div');
+    toast.className = 'error-message';
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.zIndex = '10000';
+    toast.style.maxWidth = '400px';
+    toast.style.animation = 'slideIn 0.3s ease-out';
+    toast.innerHTML = `<strong>Error:</strong> ${message}`;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+    
+    // Add click to dismiss
+    toast.style.cursor = 'pointer';
+    toast.addEventListener('click', () => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    });
 }
 
 function formatDate(dateString) {
