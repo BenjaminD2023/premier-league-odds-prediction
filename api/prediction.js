@@ -74,10 +74,13 @@ Please provide your prediction in the following JSON format only, no additional 
     }
     
     const data = await response.json();
+    
+    // Extract content from Qwen API response
+    // Qwen API can return content in different formats depending on the parameters
     const content = data.output?.choices?.[0]?.message?.content || data.output?.text;
     
     if (!content) {
-        throw new Error('No response from Qwen API');
+        throw new Error(`No content found in Qwen API response. Response structure: ${JSON.stringify(data.output || {})}`);
     }
     
     // Extract JSON from the response
