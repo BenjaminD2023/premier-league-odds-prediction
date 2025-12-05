@@ -5,14 +5,13 @@ const router = express.Router();
 const fetch = require('node-fetch');
 
 // API-Football base configuration
-const FOOTBALL_API_BASE = 'https://api-football-v1.p.rapidapi.com/v3';
+const FOOTBALL_API_BASE = 'https://v3.football.api-sports.io';
 
 /**
  * Helper function to make API-Football requests
  */
 async function makeFootballAPIRequest(endpoint, params = {}) {
     const apiKey = process.env.FOOTBALL_API_KEY;
-    const apiHost = process.env.FOOTBALL_API_HOST || 'api-football-v1.p.rapidapi.com';
     
     if (!apiKey || apiKey === 'your_api_football_key_here') {
         throw new Error('Football API key not configured. Please set FOOTBALL_API_KEY in .env file');
@@ -24,8 +23,7 @@ async function makeFootballAPIRequest(endpoint, params = {}) {
     const response = await fetch(url, {
         method: 'GET',
         headers: {
-            'X-RapidAPI-Key': apiKey,
-            'X-RapidAPI-Host': apiHost
+            'x-apisports-key': apiKey
         }
     });
     

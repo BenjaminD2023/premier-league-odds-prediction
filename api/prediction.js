@@ -5,13 +5,13 @@ const router = express.Router();
 const fetch = require('node-fetch');
 
 /**
- * Helper function to make OpenAI API requests
+ * Helper function to make Qwen API requests
  */
 async function makeLLMPrediction(matchData) {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.QWEN_API_KEY;
     
-    if (!apiKey || apiKey === 'your_openai_api_key_here') {
-        throw new Error('OpenAI API key not configured. Please set OPENAI_API_KEY in .env file');
+    if (!apiKey || apiKey === 'your_qwen_api_key_here') {
+        throw new Error('Qwen API key not configured. Please set QWEN_API_KEY in .env file');
     }
     
     const prompt = `You are a sports betting analyst. Analyze the following Premier League match and predict betting odds in decimal format.
@@ -42,36 +42,46 @@ Please provide your prediction in the following JSON format only, no additional 
   "reasoning": "<brief explanation>"
 }`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-            model: 'gpt-4',
-            messages: [
-                {
-                    role: 'system',
-                    content: 'You are a professional sports betting analyst with expertise in Premier League football. Provide accurate, data-driven odds predictions.'
-                },
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
-            temperature: 0.7,
-            max_tokens: 500
+            model: 'qwen-turbo',
+            input: {
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a professional sports betting analyst with expertise in Premier League football. Provide accurate, data-driven odds predictions.'
+                    },
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ]
+            },
+            parameters: {
+                result_format: 'message'
+            }
         })
     });
     
     if (!response.ok) {
         const error = await response.json();
-        throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`);
+        throw new Error(`Qwen API error: ${error.message || response.statusText}`);
     }
     
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    
+    // Extract content from Qwen API response
+    // Qwen API can return content in different formats depending on the parameters
+    const content = data.output?.choices?.[0]?.message?.content || data.output?.text;
+    
+    if (!content) {
+        throw new Error(`No content found in Qwen API response. Response structure: ${JSON.stringify(data.output || {})}`);
+    }
     
     // Extract JSON from the response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -104,7 +114,7 @@ router.post('/predict', async (req, res) => {
             prediction: {
                 ...prediction,
                 timestamp: new Date().toISOString(),
-                model: 'gpt-4'
+                model: 'qwen-turbo'
             }
         });
     } catch (error) {

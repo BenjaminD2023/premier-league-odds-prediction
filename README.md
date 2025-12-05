@@ -5,7 +5,7 @@ An AI-powered web application that demonstrates how modern Large Language Models
 ## 🚀 Features
 
 - **Live Fixture Data**: Fetches upcoming Premier League matches from API-Football
-- **AI-Powered Predictions**: Uses OpenAI's GPT-4 to analyze team statistics and generate betting odds
+- **AI-Powered Predictions**: Uses Alibaba Cloud's Qwen LLM to analyze team statistics and generate betting odds
 - **Accuracy Comparison**: Compares AI predictions with actual betting odds to show LLM accuracy
 - **Beautiful UI**: Modern, responsive web interface with real-time updates
 - **Team Statistics**: Displays comprehensive team stats including form, goals, and records
@@ -17,27 +17,28 @@ Before running this application, you'll need:
 1. **Node.js** (version 14 or higher)
    - Node.js 18+ is recommended for built-in fetch API support
    - The app currently uses node-fetch v2 for compatibility
-2. **API-Football API Key** from RapidAPI
-3. **OpenAI API Key** from OpenAI Platform
+2. **API-Football API Key** (direct access, not through RapidAPI)
+3. **Qwen API Key** from Alibaba Cloud DashScope
 
 ## 🔑 Getting API Keys
 
 ### API-Football (Sports Data)
 
-1. Go to [RapidAPI - API-Football](https://rapidapi.com/api-sports/api/api-football)
+1. Go to [API-Football](https://www.api-football.com/)
 2. Sign up for a free account
-3. Subscribe to the API (free tier available with 100 requests/day)
-4. Copy your RapidAPI key from the dashboard
+3. Subscribe to a plan (free tier available with 100 requests/day)
+4. Copy your API key from the dashboard
+5. **Note**: Use direct API-Football access, not through RapidAPI
 
-### OpenAI (LLM Predictions)
+### Qwen API (LLM Predictions)
 
-1. Go to [OpenAI Platform](https://platform.openai.com/api-keys)
-2. Sign up or log in to your account
-3. Navigate to API keys section
+1. Go to [Alibaba Cloud DashScope](https://dashscope.aliyun.com/)
+2. Sign up or log in to your Alibaba Cloud account
+3. Navigate to the API keys section
 4. Create a new API key
-5. Copy the key (you won't be able to see it again)
+5. Copy the key for use in your application
 
-**Note**: OpenAI API requires billing to be set up. GPT-4 costs approximately $0.03 per prediction.
+**Note**: Qwen API may require account verification. Check their pricing and usage limits.
 
 ## 🛠️ Installation
 
@@ -61,10 +62,9 @@ cp .env.example .env
 ```env
 # API-Football Configuration
 FOOTBALL_API_KEY=your_api_football_key_here
-FOOTBALL_API_HOST=api-football-v1.p.rapidapi.com
 
-# OpenAI API Configuration
-OPENAI_API_KEY=your_openai_api_key_here
+# Qwen API Configuration
+QWEN_API_KEY=your_qwen_api_key_here
 
 # Server Configuration
 PORT=3000
@@ -125,7 +125,7 @@ premier-league-odds-prediction/
 - `GET /api/football/odds/:fixtureId` - Get betting odds
 
 ### AI Predictions
-- `POST /api/prediction/predict` - Generate LLM odds prediction
+- `POST /api/prediction/predict` - Generate LLM odds prediction (using Qwen)
 - `POST /api/prediction/compare` - Compare predictions with actual odds
 
 ### Health Check
@@ -135,16 +135,12 @@ premier-league-odds-prediction/
 
 ### Using Different LLM Providers
 
-The application uses OpenAI GPT-4 by default, but you can easily switch to other providers:
+The application uses Alibaba Cloud's Qwen by default, but you can modify `api/prediction.js` to use other LLM providers if needed.
 
-#### Anthropic Claude
-1. Uncomment the `ANTHROPIC_API_KEY` in `.env`
-2. Modify `api/prediction.js` to use Anthropic's API instead
-
-#### Alternative Models
-You can change the model in `api/prediction.js`:
+### Qwen Model Selection
+You can change the Qwen model in `api/prediction.js`:
 ```javascript
-model: 'gpt-4'  // Change to 'gpt-3.5-turbo' for lower costs
+model: 'qwen-turbo'  // Options: 'qwen-turbo', 'qwen-plus', 'qwen-max'
 ```
 
 ### Styling
@@ -165,9 +161,10 @@ All styles are in `public/css/style.css`. The design uses CSS custom properties 
 - Each page load uses 1-3 requests
 - Each prediction uses 2-3 requests
 
-### OpenAI GPT-4
-- Pay-per-use pricing (~$0.03 per prediction)
-- No hard limits, just billing
+### Qwen API
+- Varies by plan and model selected
+- Check [DashScope pricing](https://dashscope.aliyun.com/) for details
+- Free tier available with limitations
 
 ## 🐛 Troubleshooting
 
@@ -176,19 +173,19 @@ All styles are in `public/css/style.css`. The design uses CSS custom properties 
 - Verify your API key is correct
 - Check that there are no extra spaces or quotes around the key
 
-### "OpenAI API error"
-- Ensure billing is set up in your OpenAI account
+### "Qwen API error"
+- Ensure your Alibaba Cloud account is verified
 - Verify your API key is valid
-- Check your API usage limits
+- Check your API usage limits and quota
 
 ### No fixtures loading
-- Verify API-Football key is correct
-- Check your RapidAPI subscription is active
+- Verify API-Football key is correct (use direct API key, not RapidAPI)
+- Check your API-Football subscription is active
 - Ensure you haven't exceeded daily request limits
 
 ### Predictions not working
-- Make sure OpenAI API key is configured
-- Verify billing is enabled on your OpenAI account
+- Make sure Qwen API key is configured
+- Verify your Alibaba Cloud account is active
 - Check API quota hasn't been exceeded
 
 ## 📝 License
@@ -205,14 +202,14 @@ If you encounter any issues or have questions:
 1. Check the troubleshooting section above
 2. Review the API documentation:
    - [API-Football Docs](https://www.api-football.com/documentation-v3)
-   - [OpenAI API Docs](https://platform.openai.com/docs/api-reference)
+   - [Qwen API Docs](https://help.aliyun.com/zh/dashscope/)
 3. Open an issue in the GitHub repository
 
 ## 🎯 Future Enhancements
 
 Potential features to add:
 - Historical accuracy tracking
-- Multiple LLM comparison (GPT-4 vs Claude vs Gemini)
+- Multiple LLM comparison (Qwen vs GPT vs Claude vs Gemini)
 - More detailed statistics and visualizations
 - Prediction history and performance metrics
 - Support for multiple leagues
