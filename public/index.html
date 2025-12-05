@@ -21,18 +21,18 @@
                     <span class="status-indicator" id="footballApiStatus">Checking...</span>
                 </div>
                 <div class="status-item">
-                    <span class="status-label">OpenAI API:</span>
-                    <span class="status-indicator" id="openaiApiStatus">Checking...</span>
+                    <span class="status-label">Qwen API:</span>
+                    <span class="status-indicator" id="qwenApiStatus">Checking...</span>
                 </div>
             </div>
         </div>
 
         <section class="controls">
-            <button id="loadFixturesBtn" class="btn btn-primary">Load Upcoming Fixtures</button>
+            <button id="loadFixturesBtn" class="btn btn-primary">Load 2022 Season Fixtures</button>
             <div class="info-box">
                 <p><strong>How it works:</strong></p>
                 <ol>
-                    <li>Load upcoming Premier League fixtures</li>
+                    <li>Load Premier League fixtures from 2022 season</li>
                     <li>Select a match to analyze</li>
                     <li>AI analyzes team statistics and generates odds predictions</li>
                     <li>Compare AI predictions with actual betting odds</li>
@@ -41,7 +41,7 @@
         </section>
 
         <section class="fixtures-section" id="fixturesSection" style="display: none;">
-            <h2>Upcoming Fixtures</h2>
+            <h2>2022 Season Fixtures</h2>
             <div id="fixturesContainer" class="fixtures-container">
                 <!-- Fixtures will be loaded here -->
             </div>
@@ -79,12 +79,12 @@
         </section>
 
         <footer>
-            <p>Built with ❤️ using AI-Football API and OpenAI GPT-4</p>
+            <p>Built with ❤️ using AI-Football API and Qwen LLM</p>
             <p class="api-info">
-                <strong>Sports API:</strong> API-Football (via RapidAPI) - 
-                <a href="https://rapidapi.com/api-sports/api/api-football" target="_blank">Get API Key</a> | 
-                <strong>LLM API:</strong> OpenAI GPT-4 - 
-                <a href="https://platform.openai.com/api-keys" target="_blank">Get API Key</a>
+                <strong>Sports API:</strong> API-Football - 
+                <a href="https://www.api-football.com/" target="_blank">Get API Key</a> | 
+                <strong>LLM API:</strong> Alibaba Cloud Qwen - 
+                <a href="https://dashscope.aliyun.com/" target="_blank">Get API Key</a>
             </p>
         </footer>
     </div>

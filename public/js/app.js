@@ -59,7 +59,7 @@ async function checkAPIStatus() {
         const data = await response.json();
         
         const footballStatus = document.getElementById('footballApiStatus');
-        const openaiStatus = document.getElementById('openaiApiStatus');
+        const qwenStatus = document.getElementById('qwenApiStatus');
         
         if (data.hasFootballApiKey) {
             footballStatus.textContent = '✓ Configured';
@@ -69,18 +69,18 @@ async function checkAPIStatus() {
             footballStatus.className = 'status-indicator not-configured';
         }
         
-        if (data.hasOpenAiKey) {
-            openaiStatus.textContent = '✓ Configured';
-            openaiStatus.className = 'status-indicator configured';
+        if (data.hasQwenApiKey) {
+            qwenStatus.textContent = '✓ Configured';
+            qwenStatus.className = 'status-indicator configured';
         } else {
-            openaiStatus.textContent = '✗ Not Configured';
-            openaiStatus.className = 'status-indicator not-configured';
+            qwenStatus.textContent = '✗ Not Configured';
+            qwenStatus.className = 'status-indicator not-configured';
         }
         
         return data;
     } catch (error) {
         console.error('Error checking API status:', error);
-        return { hasFootballApiKey: false, hasOpenAiKey: false };
+        return { hasFootballApiKey: false, hasQwenApiKey: false };
     }
 }
 
@@ -88,7 +88,7 @@ async function checkAPIStatus() {
 async function loadFixtures() {
     showLoading();
     try {
-        const response = await fetch('/api/football/fixtures?next=10');
+        const response = await fetch('/api/football/fixtures');
         const data = await response.json();
         
         if (!data.success) {

@@ -36,25 +36,25 @@ async function makeFootballAPIRequest(endpoint, params = {}) {
 
 /**
  * GET /api/football/fixtures
- * Get upcoming Premier League fixtures
+ * Get Premier League fixtures from 2022 season
  */
 router.get('/fixtures', async (req, res) => {
     try {
-        const { date, next } = req.query;
+        const { date } = req.query;
         
-        // Premier League ID is 39
+        // Premier League ID is 39, using 2022 season for historical data
         const params = {
             league: 39,
-            season: new Date().getFullYear()
+            season: 2022
         };
         
         if (date) {
             params.date = date;
-        } else if (next) {
-            params.next = next;
         } else {
-            // Default to next 10 matches
-            params.next = 10;
+            // Get fixtures from a specific date range in 2022 season
+            // Fetching from October 2022 to get mid-season matches with good data
+            params.from = '2022-10-01';
+            params.to = '2022-10-31';
         }
         
         const data = await makeFootballAPIRequest('/fixtures', params);
@@ -97,7 +97,7 @@ router.get('/fixture/:id', async (req, res) => {
 
 /**
  * GET /api/football/teams/:id/statistics
- * Get team statistics for the current season
+ * Get team statistics for the 2022 season
  */
 router.get('/teams/:id/statistics', async (req, res) => {
     try {
@@ -106,7 +106,7 @@ router.get('/teams/:id/statistics', async (req, res) => {
         const data = await makeFootballAPIRequest('/teams/statistics', {
             team: id,
             league: 39,
-            season: new Date().getFullYear()
+            season: 2022
         });
         
         res.json({
@@ -124,13 +124,13 @@ router.get('/teams/:id/statistics', async (req, res) => {
 
 /**
  * GET /api/football/standings
- * Get current Premier League standings
+ * Get Premier League standings from 2022 season
  */
 router.get('/standings', async (req, res) => {
     try {
         const data = await makeFootballAPIRequest('/standings', {
             league: 39,
-            season: new Date().getFullYear()
+            season: 2022
         });
         
         res.json({
