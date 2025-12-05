@@ -4,6 +4,29 @@ let aiPredictionData = null;
 let actualOddsData = null;
 
 // Utility functions
+function decimalToMoneyline(decimal) {
+    if (decimal >= 2.0) {
+        const moneyline = Math.round((decimal - 1) * 100);
+        return `+${moneyline}`;
+    } else {
+        const moneyline = Math.round(-100 / (decimal - 1));
+        return `${moneyline}`;
+    }
+}
+
+function moneylineToDecimal(moneyline) {
+    const value = parseFloat(moneyline);
+    if (value >= 0) {
+        return 1 + (value / 100);
+    } else {
+        return 1 + (100 / Math.abs(value));
+    }
+}
+
+function isMoneylineFormat(value) {
+    return typeof value === 'string' && (value.includes('+') || value.includes('-'));
+}
+
 function showLoading() {
     document.getElementById('loadingOverlay').style.display = 'flex';
 }
@@ -305,19 +328,30 @@ async function generatePrediction() {
 function displayAIPrediction(prediction) {
     const container = document.getElementById('aiPrediction');
     
+    // Convert to moneyline if decimal format is received
+    const homeWinMoneyline = isMoneylineFormat(prediction.homeWin)
+        ? prediction.homeWin 
+        : decimalToMoneyline(prediction.homeWin);
+    const drawMoneyline = isMoneylineFormat(prediction.draw)
+        ? prediction.draw 
+        : decimalToMoneyline(prediction.draw);
+    const awayWinMoneyline = isMoneylineFormat(prediction.awayWin)
+        ? prediction.awayWin 
+        : decimalToMoneyline(prediction.awayWin);
+    
     container.innerHTML = `
         <div class="odds-display">
             <div class="odds-item">
                 <span class="odds-label">Home Win:</span>
-                <span class="odds-value">${prediction.homeWin.toFixed(2)}</span>
+                <span class="odds-value">${homeWinMoneyline}</span>
             </div>
             <div class="odds-item">
                 <span class="odds-label">Draw:</span>
-                <span class="odds-value">${prediction.draw.toFixed(2)}</span>
+                <span class="odds-value">${drawMoneyline}</span>
             </div>
             <div class="odds-item">
                 <span class="odds-label">Away Win:</span>
-                <span class="odds-value">${prediction.awayWin.toFixed(2)}</span>
+                <span class="odds-value">${awayWinMoneyline}</span>
             </div>
         </div>
         <div class="confidence-meter">
@@ -352,23 +386,52 @@ async function loadActualOdds() {
         
         if (!data.success || !data.data || data.data.length === 0) {
             // If no odds available from API, show manual input option
+            showError('No odds available from API. Please enter manually.');
             displayManualOddsInput();
             return;
         }
         
-        // Extract 1X2 odds (Match Winner)
-        const oddsData = data.data[0];
-        const matchWinnerOdds = oddsData.bookmakers[0]?.bets?.find(bet => bet.name === 'Match Winner');
+        // Try to extract 1X2 odds (Match Winner) from multiple bookmakers
+        let matchWinnerOdds = null;
+        let bookmakerName = '';
+        
+        for (const oddsData of data.data) {
+            if (oddsData.bookmakers && oddsData.bookmakers.length > 0) {
+                for (const bookmaker of oddsData.bookmakers) {
+                    const bet = bookmaker.bets?.find(bet => bet.name === 'Match Winner');
+                    if (bet && bet.values && bet.values.length === 3) {
+                        matchWinnerOdds = bet;
+                        bookmakerName = bookmaker.name;
+                        break;
+                    }
+                }
+                if (matchWinnerOdds) break;
+            }
+        }
         
         if (!matchWinnerOdds) {
+            showError('No Match Winner odds found from any bookmaker. Please enter manually.');
             displayManualOddsInput();
             return;
         }
         
+        // Extract decimal odds
+        const homeWinDecimal = parseFloat(matchWinnerOdds.values.find(v => v.value === 'Home')?.odd || 0);
+        const drawDecimal = parseFloat(matchWinnerOdds.values.find(v => v.value === 'Draw')?.odd || 0);
+        const awayWinDecimal = parseFloat(matchWinnerOdds.values.find(v => v.value === 'Away')?.odd || 0);
+        
+        if (!homeWinDecimal || !drawDecimal || !awayWinDecimal) {
+            showError('Invalid odds data received. Please enter manually.');
+            displayManualOddsInput();
+            return;
+        }
+        
+        // Convert to moneyline and store
         actualOddsData = {
-            homeWin: parseFloat(matchWinnerOdds.values.find(v => v.value === 'Home')?.odd || 0),
-            draw: parseFloat(matchWinnerOdds.values.find(v => v.value === 'Draw')?.odd || 0),
-            awayWin: parseFloat(matchWinnerOdds.values.find(v => v.value === 'Away')?.odd || 0)
+            homeWin: decimalToMoneyline(homeWinDecimal),
+            draw: decimalToMoneyline(drawDecimal),
+            awayWin: decimalToMoneyline(awayWinDecimal),
+            bookmaker: bookmakerName
         };
         
         displayActualOdds(actualOddsData);
@@ -379,6 +442,7 @@ async function loadActualOdds() {
         }
     } catch (error) {
         console.error('Error loading odds:', error);
+        showError('Error loading odds from API. Please enter manually.');
         displayManualOddsInput();
     } finally {
         hideLoading();
@@ -390,35 +454,48 @@ function displayManualOddsInput() {
     const container = document.getElementById('actualOdds');
     
     container.innerHTML = `
-        <p style="margin-bottom: 15px; text-align: center;">Enter betting odds manually:</p>
+        <p style="margin-bottom: 15px; text-align: center;">Enter betting odds manually (Moneyline format):</p>
         <div class="odds-display">
             <div class="odds-item">
                 <span class="odds-label">Home Win:</span>
-                <input type="number" id="manualHomeWin" step="0.01" placeholder="2.50" style="width: 80px; padding: 5px; font-size: 1.2em;">
+                <input type="text" id="manualHomeWin" placeholder="+150 or -200" style="width: 100px; padding: 5px; font-size: 1.2em;">
             </div>
             <div class="odds-item">
                 <span class="odds-label">Draw:</span>
-                <input type="number" id="manualDraw" step="0.01" placeholder="3.20" style="width: 80px; padding: 5px; font-size: 1.2em;">
+                <input type="text" id="manualDraw" placeholder="+220" style="width: 100px; padding: 5px; font-size: 1.2em;">
             </div>
             <div class="odds-item">
                 <span class="odds-label">Away Win:</span>
-                <input type="number" id="manualAwayWin" step="0.01" placeholder="2.80" style="width: 80px; padding: 5px; font-size: 1.2em;">
+                <input type="text" id="manualAwayWin" placeholder="+180" style="width: 100px; padding: 5px; font-size: 1.2em;">
             </div>
         </div>
         <button id="submitManualOdds" class="btn btn-secondary" style="width: 100%; margin-top: 15px;">Submit Odds</button>
     `;
     
     document.getElementById('submitManualOdds').addEventListener('click', () => {
-        const homeWin = parseFloat(document.getElementById('manualHomeWin').value);
-        const draw = parseFloat(document.getElementById('manualDraw').value);
-        const awayWin = parseFloat(document.getElementById('manualAwayWin').value);
+        const homeWin = document.getElementById('manualHomeWin').value.trim();
+        const draw = document.getElementById('manualDraw').value.trim();
+        const awayWin = document.getElementById('manualAwayWin').value.trim();
         
-        if (isNaN(homeWin) || isNaN(draw) || isNaN(awayWin)) {
-            showError('Please enter valid odds for all outcomes');
+        // Validate moneyline format
+        const moneylineRegex = /^[+-]\d+$/;
+        if (!moneylineRegex.test(homeWin) || !moneylineRegex.test(draw) || !moneylineRegex.test(awayWin)) {
+            showError('Please enter valid moneyline odds (e.g., +150 or -200)');
             return;
         }
         
-        actualOddsData = { homeWin, draw, awayWin };
+        // Validate that odds are not zero
+        if (parseInt(homeWin) === 0 || parseInt(draw) === 0 || parseInt(awayWin) === 0) {
+            showError('Moneyline odds cannot be zero');
+            return;
+        }
+        
+        actualOddsData = { 
+            homeWin, 
+            draw, 
+            awayWin,
+            bookmaker: 'Manual Entry'
+        };
         displayActualOdds(actualOddsData);
         
         if (aiPredictionData) {
@@ -435,19 +512,19 @@ function displayActualOdds(odds) {
         <div class="odds-display">
             <div class="odds-item">
                 <span class="odds-label">Home Win:</span>
-                <span class="odds-value">${odds.homeWin.toFixed(2)}</span>
+                <span class="odds-value">${odds.homeWin}</span>
             </div>
             <div class="odds-item">
                 <span class="odds-label">Draw:</span>
-                <span class="odds-value">${odds.draw.toFixed(2)}</span>
+                <span class="odds-value">${odds.draw}</span>
             </div>
             <div class="odds-item">
                 <span class="odds-label">Away Win:</span>
-                <span class="odds-value">${odds.awayWin.toFixed(2)}</span>
+                <span class="odds-value">${odds.awayWin}</span>
             </div>
         </div>
         <p style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9em;">
-            Bookmaker odds
+            ${odds.bookmaker ? `Bookmaker: ${odds.bookmaker}` : 'Bookmaker odds'}
         </p>
     `;
 }
@@ -460,14 +537,39 @@ async function compareOdds() {
     
     showLoading();
     try {
+        // Convert moneyline to decimal for comparison
+        const llmDecimal = {
+            homeWin: typeof aiPredictionData.homeWin === 'string' 
+                ? moneylineToDecimal(aiPredictionData.homeWin)
+                : aiPredictionData.homeWin,
+            draw: typeof aiPredictionData.draw === 'string'
+                ? moneylineToDecimal(aiPredictionData.draw)
+                : aiPredictionData.draw,
+            awayWin: typeof aiPredictionData.awayWin === 'string'
+                ? moneylineToDecimal(aiPredictionData.awayWin)
+                : aiPredictionData.awayWin
+        };
+        
+        const actualDecimal = {
+            homeWin: typeof actualOddsData.homeWin === 'string'
+                ? moneylineToDecimal(actualOddsData.homeWin)
+                : actualOddsData.homeWin,
+            draw: typeof actualOddsData.draw === 'string'
+                ? moneylineToDecimal(actualOddsData.draw)
+                : actualOddsData.draw,
+            awayWin: typeof actualOddsData.awayWin === 'string'
+                ? moneylineToDecimal(actualOddsData.awayWin)
+                : actualOddsData.awayWin
+        };
+        
         const response = await fetch('/api/prediction/compare', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                llmPrediction: aiPredictionData,
-                actualOdds: actualOddsData
+                llmPrediction: llmDecimal,
+                actualOdds: actualDecimal
             })
         });
         
@@ -476,6 +578,28 @@ async function compareOdds() {
         if (!data.success) {
             throw new Error(data.error || 'Failed to compare odds');
         }
+        
+        // Add moneyline values to comparison data
+        data.comparison.homeWin.llmMoneyline = typeof aiPredictionData.homeWin === 'string' 
+            ? aiPredictionData.homeWin 
+            : decimalToMoneyline(aiPredictionData.homeWin);
+        data.comparison.homeWin.actualMoneyline = typeof actualOddsData.homeWin === 'string'
+            ? actualOddsData.homeWin
+            : decimalToMoneyline(actualOddsData.homeWin);
+            
+        data.comparison.draw.llmMoneyline = typeof aiPredictionData.draw === 'string'
+            ? aiPredictionData.draw
+            : decimalToMoneyline(aiPredictionData.draw);
+        data.comparison.draw.actualMoneyline = typeof actualOddsData.draw === 'string'
+            ? actualOddsData.draw
+            : decimalToMoneyline(actualOddsData.draw);
+            
+        data.comparison.awayWin.llmMoneyline = typeof aiPredictionData.awayWin === 'string'
+            ? aiPredictionData.awayWin
+            : decimalToMoneyline(aiPredictionData.awayWin);
+        data.comparison.awayWin.actualMoneyline = typeof actualOddsData.awayWin === 'string'
+            ? actualOddsData.awayWin
+            : decimalToMoneyline(actualOddsData.awayWin);
         
         displayComparison(data);
         document.getElementById('comparisonSection').style.display = 'block';
@@ -502,19 +626,16 @@ function displayComparison(data) {
                 <div class="comparison-values">
                     <div class="value-box">
                         <span class="value-label">AI Prediction</span>
-                        <div class="value-number">${data.comparison.homeWin.llm.toFixed(2)}</div>
+                        <div class="value-number">${data.comparison.homeWin.llmMoneyline}</div>
                     </div>
                     <div class="value-box">
                         <span class="value-label">Actual Odds</span>
-                        <div class="value-number">${data.comparison.homeWin.actual.toFixed(2)}</div>
+                        <div class="value-number">${data.comparison.homeWin.actualMoneyline}</div>
                     </div>
                     <div class="value-box">
                         <span class="value-label">Difference</span>
-                        <div class="value-number">${data.comparison.homeWin.difference.toFixed(2)}</div>
+                        <div class="value-number">${data.comparison.homeWin.percentageDiff.toFixed(2)}%</div>
                     </div>
-                </div>
-                <div class="difference">
-                    ${data.comparison.homeWin.percentageDiff.toFixed(2)}% difference
                 </div>
             </div>
             
@@ -523,19 +644,16 @@ function displayComparison(data) {
                 <div class="comparison-values">
                     <div class="value-box">
                         <span class="value-label">AI Prediction</span>
-                        <div class="value-number">${data.comparison.draw.llm.toFixed(2)}</div>
+                        <div class="value-number">${data.comparison.draw.llmMoneyline}</div>
                     </div>
                     <div class="value-box">
                         <span class="value-label">Actual Odds</span>
-                        <div class="value-number">${data.comparison.draw.actual.toFixed(2)}</div>
+                        <div class="value-number">${data.comparison.draw.actualMoneyline}</div>
                     </div>
                     <div class="value-box">
                         <span class="value-label">Difference</span>
-                        <div class="value-number">${data.comparison.draw.difference.toFixed(2)}</div>
+                        <div class="value-number">${data.comparison.draw.percentageDiff.toFixed(2)}%</div>
                     </div>
-                </div>
-                <div class="difference">
-                    ${data.comparison.draw.percentageDiff.toFixed(2)}% difference
                 </div>
             </div>
             
@@ -544,19 +662,16 @@ function displayComparison(data) {
                 <div class="comparison-values">
                     <div class="value-box">
                         <span class="value-label">AI Prediction</span>
-                        <div class="value-number">${data.comparison.awayWin.llm.toFixed(2)}</div>
+                        <div class="value-number">${data.comparison.awayWin.llmMoneyline}</div>
                     </div>
                     <div class="value-box">
                         <span class="value-label">Actual Odds</span>
-                        <div class="value-number">${data.comparison.awayWin.actual.toFixed(2)}</div>
+                        <div class="value-number">${data.comparison.awayWin.actualMoneyline}</div>
                     </div>
                     <div class="value-box">
                         <span class="value-label">Difference</span>
-                        <div class="value-number">${data.comparison.awayWin.difference.toFixed(2)}</div>
+                        <div class="value-number">${data.comparison.awayWin.percentageDiff.toFixed(2)}%</div>
                     </div>
-                </div>
-                <div class="difference">
-                    ${data.comparison.awayWin.percentageDiff.toFixed(2)}% difference
                 </div>
             </div>
         </div>

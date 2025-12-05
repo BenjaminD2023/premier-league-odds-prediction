@@ -1,11 +1,12 @@
 # Premier League Odds Prediction Website
 
-An AI-powered web application that demonstrates how modern Large Language Models (LLMs) can predict Premier League betting odds and compares their accuracy against actual bookmaker odds.
+An AI-powered web application that demonstrates how modern Large Language Models (LLMs) can predict Premier League betting odds in moneyline (American) format and compares their accuracy against actual bookmaker odds.
 
 ## 🚀 Features
 
 - **Live Fixture Data**: Fetches upcoming Premier League matches from API-Football
-- **AI-Powered Predictions**: Uses Alibaba Cloud's Qwen LLM to analyze team statistics and generate betting odds
+- **AI-Powered Predictions**: Uses Alibaba Cloud's Qwen LLM to analyze team statistics and generate betting odds in moneyline format
+- **Moneyline Odds Format**: Displays all odds in American moneyline format (+150, -200, etc.)
 - **Accuracy Comparison**: Compares AI predictions with actual betting odds to show LLM accuracy
 - **Beautiful UI**: Modern, responsive web interface with real-time updates
 - **Team Statistics**: Displays comprehensive team stats including form, goals, and records
@@ -92,8 +93,8 @@ http://localhost:3000
 1. **Check API Status**: The homepage displays whether your API keys are configured correctly
 2. **Load Fixtures**: Click "Load Upcoming Fixtures" to fetch the next Premier League matches
 3. **Select a Match**: Click on any fixture card to view detailed team statistics
-4. **Generate AI Prediction**: Click "Generate AI Prediction" to let the LLM analyze the match and predict odds
-5. **Load Actual Odds**: Click "Load Actual Odds" to fetch bookmaker odds (or enter them manually)
+4. **Generate AI Prediction**: Click "Generate AI Prediction" to let the LLM analyze the match and predict odds in moneyline format
+5. **Load Actual Odds**: Click "Load Actual Odds" to fetch bookmaker odds from the API (converted to moneyline) or enter them manually in moneyline format (+150, -200, etc.)
 6. **View Comparison**: The system automatically compares AI predictions with actual odds and displays accuracy metrics
 
 ## 🏗️ Project Structure

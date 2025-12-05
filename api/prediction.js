@@ -5,6 +5,19 @@ const router = express.Router();
 const fetch = require('node-fetch');
 
 /**
+ * Convert decimal odds to moneyline (American) odds
+ */
+function decimalToMoneyline(decimal) {
+    if (decimal >= 2.0) {
+        const moneyline = Math.round((decimal - 1) * 100);
+        return `+${moneyline}`;
+    } else {
+        const moneyline = Math.round(-100 / (decimal - 1));
+        return `${moneyline}`;
+    }
+}
+
+/**
  * Helper function to make Qwen API requests
  */
 async function makeLLMPrediction(matchData) {
@@ -14,7 +27,7 @@ async function makeLLMPrediction(matchData) {
         throw new Error('Qwen API key not configured. Please set QWEN_API_KEY in .env file');
     }
     
-    const prompt = `You are a sports betting analyst. Analyze the following Premier League match and predict betting odds in decimal format.
+    const prompt = `You are a sports betting analyst. Analyze the following Premier League match and predict betting odds in moneyline (American) format.
 
 Match: ${matchData.homeTeam} vs ${matchData.awayTeam}
 Date: ${matchData.date}
@@ -33,11 +46,12 @@ ${matchData.awayTeam} Statistics:
 - Goals Against: ${matchData.awayStats?.goalsAgainst || 'N/A'}
 - Away Record: ${matchData.awayStats?.awayRecord || 'N/A'}
 
-Please provide your prediction in the following JSON format only, no additional text:
+Please provide your prediction in the following JSON format only, no additional text.
+Moneyline odds format: positive (e.g., +150) for underdogs, negative (e.g., -200) for favorites.
 {
-  "homeWin": <decimal odds>,
-  "draw": <decimal odds>,
-  "awayWin": <decimal odds>,
+  "homeWin": "<moneyline odds with + or - sign>",
+  "draw": "<moneyline odds with + or - sign>",
+  "awayWin": "<moneyline odds with + or - sign>",
   "confidence": <percentage>,
   "reasoning": "<brief explanation>"
 }`;
@@ -89,7 +103,17 @@ Please provide your prediction in the following JSON format only, no additional 
         throw new Error('Could not parse LLM response');
     }
     
-    return JSON.parse(jsonMatch[0]);
+    const prediction = JSON.parse(jsonMatch[0]);
+    
+    // Convert to moneyline if LLM returned decimal format
+    const oddsFields = ['homeWin', 'draw', 'awayWin'];
+    oddsFields.forEach(field => {
+        if (typeof prediction[field] === 'number') {
+            prediction[field] = decimalToMoneyline(prediction[field]);
+        }
+    });
+    
+    return prediction;
 }
 
 /**
