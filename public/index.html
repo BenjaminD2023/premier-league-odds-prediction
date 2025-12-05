@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premier League Odds Prediction - AI Powered</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚽ Premier League Odds Prediction</h1>
+            <p class="subtitle">AI-Powered Betting Odds Analysis using LLMs</p>
+        </header>
+
+        <div class="api-status" id="apiStatus">
+            <h3>🔑 API Status</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">Football API:</span>
+                    <span class="status-indicator" id="footballApiStatus">Checking...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">OpenAI API:</span>
+                    <span class="status-indicator" id="openaiApiStatus">Checking...</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="controls">
+            <button id="loadFixturesBtn" class="btn btn-primary">Load Upcoming Fixtures</button>
+            <div class="info-box">
+                <p><strong>How it works:</strong></p>
+                <ol>
+                    <li>Load upcoming Premier League fixtures</li>
+                    <li>Select a match to analyze</li>
+                    <li>AI analyzes team statistics and generates odds predictions</li>
+                    <li>Compare AI predictions with actual betting odds</li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="fixtures-section" id="fixturesSection" style="display: none;">
+            <h2>Upcoming Fixtures</h2>
+            <div id="fixturesContainer" class="fixtures-container">
+                <!-- Fixtures will be loaded here -->
+            </div>
+        </section>
+
+        <section class="prediction-section" id="predictionSection" style="display: none;">
+            <h2>Match Analysis</h2>
+            <div id="matchInfo" class="match-info">
+                <!-- Match information will be displayed here -->
+            </div>
+
+            <div class="prediction-container">
+                <div class="prediction-box">
+                    <h3>🤖 AI Prediction</h3>
+                    <div id="aiPrediction" class="prediction-content">
+                        <button id="generatePredictionBtn" class="btn btn-success">Generate AI Prediction</button>
+                    </div>
+                </div>
+
+                <div class="prediction-box">
+                    <h3>📊 Actual Betting Odds</h3>
+                    <div id="actualOdds" class="prediction-content">
+                        <p class="placeholder">Load odds from bookmakers</p>
+                        <button id="loadOddsBtn" class="btn btn-secondary">Load Actual Odds</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="comparisonSection" class="comparison-section" style="display: none;">
+                <h3>📈 Accuracy Comparison</h3>
+                <div id="comparisonResults" class="comparison-results">
+                    <!-- Comparison results will be displayed here -->
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>Built with ❤️ using AI-Football API and OpenAI GPT-4</p>
+            <p class="api-info">
+                <strong>Sports API:</strong> API-Football (via RapidAPI) - 
+                <a href="https://rapidapi.com/api-sports/api/api-football" target="_blank">Get API Key</a> | 
+                <strong>LLM API:</strong> OpenAI GPT-4 - 
+                <a href="https://platform.openai.com/api-keys" target="_blank">Get API Key</a>
+            </p>
+        </footer>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
