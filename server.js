@@ -39,7 +39,7 @@ app.get('/api/health', (req, res) => {
         status: 'ok', 
         message: 'Premier League Odds Prediction API is running',
         hasFootballApiKey: !!process.env.FOOTBALL_API_KEY && process.env.FOOTBALL_API_KEY !== 'your_api_football_key_here',
-        hasOpenAiKey: !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here'
+        hasQwenApiKey: !!process.env.QWEN_API_KEY && process.env.QWEN_API_KEY !== 'your_qwen_api_key_here'
     });
 });
 
@@ -48,7 +48,7 @@ app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
     console.log('\n🔑 API Key Status:');
     console.log(`   Football API: ${process.env.FOOTBALL_API_KEY && process.env.FOOTBALL_API_KEY !== 'your_api_football_key_here' ? '✓ Configured' : '✗ Not configured'}`);
-    console.log(`   OpenAI API: ${process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here' ? '✓ Configured' : '✗ Not configured'}`);
+    console.log(`   Qwen API: ${process.env.QWEN_API_KEY && process.env.QWEN_API_KEY !== 'your_qwen_api_key_here' ? '✓ Configured' : '✗ Not configured'}`);
     console.log('\n📝 Configure your API keys in the .env file');
     console.log('   Copy .env.example to .env and add your keys\n');
 });
