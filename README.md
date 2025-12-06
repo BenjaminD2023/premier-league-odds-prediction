@@ -2,6 +2,28 @@
 
 An AI-powered web application that demonstrates how modern Large Language Models (LLMs) can predict Premier League **moneyline (1X2)** betting odds and compares their accuracy against actual bookmaker odds.
 
+## 🌟 **NEW: React Version for GitHub Pages**
+
+This project has been refactored to use **React** and can now be deployed as a **static site on GitHub Pages**!
+
+### Quick Start (React Version)
+
+```bash
+cd client
+npm install
+cp .env.example .env
+# Edit .env with your API keys
+npm run dev
+```
+
+Visit [client/README.md](client/README.md) for complete React setup and deployment instructions.
+
+## Legacy Node.js/Express Version
+
+The original Node.js/Express backend is still available in the root directory for those who prefer a traditional server-based architecture. See below for setup instructions.
+
+---
+
 ## 🚀 Features
 
 - **Live Fixture Data**: Fetches upcoming Premier League matches from API-Football
@@ -11,9 +33,9 @@ An AI-powered web application that demonstrates how modern Large Language Models
 - **Beautiful UI**: Modern, responsive web interface with real-time updates
 - **Team Statistics**: Displays comprehensive team stats including form, goals, and records
 
-## 📋 Prerequisites
+## 📋 Prerequisites (Legacy Node.js Version)
 
-Before running this application, you'll need:
+Before running the legacy Node.js/Express application, you'll need:
 
 1. **Node.js** (version 14 or higher)
    - Node.js 18+ is recommended for built-in fetch API support
@@ -41,7 +63,7 @@ Before running this application, you'll need:
 
 **Note**: Qwen API may require account verification. Check their pricing and usage limits.
 
-## 🛠️ Installation
+## 🛠️ Installation (Legacy Node.js Version)
 
 1. Clone the repository:
 ```bash
@@ -71,7 +93,7 @@ QWEN_API_KEY=your_qwen_api_key_here
 PORT=3000
 ```
 
-## 🚀 Running the Application
+## 🚀 Running the Application (Legacy Node.js Version)
 
 Start the server:
 ```bash

@@ -1,0 +1,250 @@
+{
+  "42": {
+    "season2021": {
+      "league": { "rank": 5, "season": 2021 },
+      "fixtures": {
+        "played": { "total": 38 },
+        "wins": { "total": 22 },
+        "draws": { "total": 3 },
+        "loses": { "total": 13 }
+      },
+      "goals": {
+        "for": { "total": { "total": 61 } },
+        "against": { "total": { "total": 48 } }
+      },
+      "form": "WWLWW"
+    },
+    "season2022PreMatch": {
+      "label": "Before Oct 1, 2022",
+      "league": { "rank": 1, "season": 2022 },
+      "fixtures": {
+        "played": { "total": 7 },
+        "wins": { "total": 6 },
+        "draws": { "total": 0 },
+        "loses": { "total": 1 }
+      },
+      "goals": {
+        "for": { "total": { "total": 17 } },
+        "against": { "total": { "total": 7 } }
+      },
+      "form": "WWWLWW"
+    }
+  },
+  "47": {
+    "season2021": {
+      "league": { "rank": 4, "season": 2021 },
+      "fixtures": {
+        "played": { "total": 38 },
+        "wins": { "total": 22 },
+        "draws": { "total": 5 },
+        "loses": { "total": 11 }
+      },
+      "goals": {
+        "for": { "total": { "total": 69 } },
+        "against": { "total": { "total": 40 } }
+      },
+      "form": "WDWWW"
+    },
+    "season2022PreMatch": {
+      "label": "Before Oct 1, 2022",
+      "league": { "rank": 3, "season": 2022 },
+      "fixtures": {
+        "played": { "total": 7 },
+        "wins": { "total": 5 },
+        "draws": { "total": 2 },
+        "loses": { "total": 0 }
+      },
+      "goals": {
+        "for": { "total": { "total": 18 } },
+        "against": { "total": { "total": 7 } }
+      },
+      "form": "WWDWWW"
+    }
+  },
+  "40": {
+    "season2021": {
+      "league": { "rank": 2, "season": 2021 },
+      "fixtures": {
+        "played": { "total": 38 },
+        "wins": { "total": 28 },
+        "draws": { "total": 8 },
+        "loses": { "total": 2 }
+      },
+      "goals": {
+        "for": { "total": { "total": 94 } },
+        "against": { "total": { "total": 26 } }
+      },
+      "form": "WDWWW"
+    },
+    "season2022PreMatch": {
+      "label": "Before Oct 1, 2022",
+      "league": { "rank": 9, "season": 2022 },
+      "fixtures": {
+        "played": { "total": 7 },
+        "wins": { "total": 2 },
+        "draws": { "total": 4 },
+        "loses": { "total": 1 }
+      },
+      "goals": {
+        "for": { "total": { "total": 15 } },
+        "against": { "total": { "total": 9 } }
+      },
+      "form": "WDLDDW"
+    }
+  },
+  "51": {
+    "season2021": {
+      "league": { "rank": 9, "season": 2021 },
+      "fixtures": {
+        "played": { "total": 38 },
+        "wins": { "total": 12 },
+        "draws": { "total": 15 },
+        "loses": { "total": 11 }
+      },
+      "goals": {
+        "for": { "total": { "total": 42 } },
+        "against": { "total": { "total": 44 } }
+      },
+      "form": "WDDWL"
+    },
+    "season2022PreMatch": {
+      "label": "Before Oct 1, 2022",
+      "league": { "rank": 4, "season": 2022 },
+      "fixtures": {
+        "played": { "total": 6 },
+        "wins": { "total": 4 },
+        "draws": { "total": 1 },
+        "loses": { "total": 1 }
+      },
+      "goals": {
+        "for": { "total": { "total": 11 } },
+        "against": { "total": { "total": 5 } }
+      },
+      "form": "WDWWL"
+    }
+  },
+  "50": {
+    "season2021": {
+      "league": { "rank": 1, "season": 2021 },
+      "fixtures": {
+        "played": { "total": 38 },
+        "wins": { "total": 29 },
+        "draws": { "total": 6 },
+        "loses": { "total": 3 }
+      },
+      "goals": {
+        "for": { "total": { "total": 99 } },
+        "against": { "total": { "total": 26 } }
+      },
+      "form": "WWWWW"
+    },
+    "season2022PreMatch": {
+      "label": "Before Oct 2, 2022",
+      "league": { "rank": 2, "season": 2022 },
+      "fixtures": {
+        "played": { "total": 7 },
+        "wins": { "total": 5 },
+        "draws": { "total": 2 },
+        "loses": { "total": 0 }
+      },
+      "goals": {
+        "for": { "total": { "total": 23 } },
+        "against": { "total": { "total": 6 } }
+      },
+      "form": "WDWWWW"
+    }
+  },
+  "33": {
+    "season2021": {
+      "league": { "rank": 6, "season": 2021 },
+      "fixtures": {
+        "played": { "total": 38 },
+        "wins": { "total": 16 },
+        "draws": { "total": 10 },
+        "loses": { "total": 12 }
+      },
+      "goals": {
+        "for": { "total": { "total": 57 } },
+        "against": { "total": { "total": 57 } }
+      },
+      "form": "WLWLW"
+    },
+    "season2022PreMatch": {
+      "label": "Before Oct 2, 2022",
+      "league": { "rank": 5, "season": 2022 },
+      "fixtures": {
+        "played": { "total": 6 },
+        "wins": { "total": 4 },
+        "draws": { "total": 0 },
+        "loses": { "total": 2 }
+      },
+      "goals": {
+        "for": { "total": { "total": 8 } },
+        "against": { "total": { "total": 8 } }
+      },
+      "form": "LLWWWW"
+    }
+  },
+  "49": {
+    "season2021": {
+      "league": { "rank": 3, "season": 2021 },
+      "fixtures": {
+        "played": { "total": 38 },
+        "wins": { "total": 21 },
+        "draws": { "total": 11 },
+        "loses": { "total": 6 }
+      },
+      "goals": {
+        "for": { "total": { "total": 76 } },
+        "against": { "total": { "total": 33 } }
+      },
+      "form": "WWDWW"
+    },
+    "season2022PreMatch": {
+      "label": "Before Oct 8, 2022",
+      "league": { "rank": 7, "season": 2022 },
+      "fixtures": {
+        "played": { "total": 7 },
+        "wins": { "total": 4 },
+        "draws": { "total": 1 },
+        "loses": { "total": 2 }
+      },
+      "goals": {
+        "for": { "total": { "total": 10 } },
+        "against": { "total": { "total": 8 } }
+      },
+      "form": "WLWDWW"
+    }
+  },
+  "39": {
+    "season2021": {
+      "league": { "rank": 10, "season": 2021 },
+      "fixtures": {
+        "played": { "total": 38 },
+        "wins": { "total": 15 },
+        "draws": { "total": 6 },
+        "loses": { "total": 17 }
+      },
+      "goals": {
+        "for": { "total": { "total": 38 } },
+        "against": { "total": { "total": 43 } }
+      },
+      "form": "LLWWL"
+    },
+    "season2022PreMatch": {
+      "label": "Before Oct 8, 2022",
+      "league": { "rank": 18, "season": 2022 },
+      "fixtures": {
+        "played": { "total": 8 },
+        "wins": { "total": 1 },
+        "draws": { "total": 3 },
+        "loses": { "total": 4 }
+      },
+      "goals": {
+        "for": { "total": { "total": 3 } },
+        "against": { "total": { "total": 9 } }
+      },
+      "form": "DDLWLL"
+    }
+  }
+}
