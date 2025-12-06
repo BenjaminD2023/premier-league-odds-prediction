@@ -88,6 +88,18 @@ Open your browser and navigate to:
 http://localhost:3000
 ```
 
+## 📦 Building for Deployment
+Generate a static-only bundle (just the HTML, CSS, and JS) under `dist/`:
+```bash
+npm run build
+```
+Outputs:
+- `dist/index.html`
+- `dist/style.css`
+- `dist/app.js`
+
+This creates `dist/premier-league-odds-prediction` and a compressed archive `dist/premier-league-odds-prediction.tar.gz` you can upload to your hosting environment.
+
 ## 📖 How to Use
 
 1. **Check API Status**: The homepage displays whether your API keys are configured correctly
