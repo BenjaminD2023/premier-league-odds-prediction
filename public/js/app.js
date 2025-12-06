@@ -2,8 +2,35 @@
 let selectedFixture = null;
 let aiPredictionData = null;
 let actualOddsData = null;
+let lastMatchData = null;
+let aiChatHistory = [];
+let selectedModel = 'qwen3-8b';
+let lastModelUsed = 'qwen3-8b';
 
 // Utility functions
+function convertDecimalToAmerican(dec) {
+    if (!isFinite(dec) || dec <= 1) return 'N/A';
+    if (dec >= 2) return `+${Math.round((dec - 1) * 100)}`;
+    return `-${Math.round(100 / (dec - 1))}`;
+}
+
+function formatMoneylineWithProbability(dec) {
+    if (!isFinite(dec) || dec <= 1) return 'N/A';
+    const american = convertDecimalToAmerican(dec);
+    const implied = (1 / dec * 100).toFixed(1);
+    return `${american} <small>(${dec.toFixed(2)} | ${implied}% )</small>`;
+}
+
+function isSampleFixture(fixture) {
+    return isNaN(Number(fixture?.fixture?.id));
+}
+
+function updateSampleDataBanner(usingSample) {
+    const banner = document.getElementById('sampleDataBanner');
+    if (!banner) return;
+    banner.style.display = usingSample ? 'block' : 'none';
+}
+
 function showLoading() {
     document.getElementById('loadingOverlay').style.display = 'flex';
 }
@@ -112,18 +139,24 @@ function displayFixtures(fixtures) {
     
     if (!fixtures || fixtures.length === 0) {
         container.innerHTML = '<p class="placeholder">No upcoming fixtures found.</p>';
+        updateSampleDataBanner(false);
         return;
     }
     
-    fixtures.forEach(fixture => {
+    const sampleOnly = fixtures.filter(isSampleFixture);
+    const listToRender = sampleOnly.length ? sampleOnly : fixtures;
+    updateSampleDataBanner(sampleOnly.length > 0);
+    
+    listToRender.forEach(fixture => {
         const card = document.createElement('div');
         card.className = 'fixture-card';
+        const samplePill = isSampleFixture(fixture) ? '<span class="sample-pill">Sample</span>' : '';
         card.innerHTML = `
             <div class="fixture-date">${formatDate(fixture.fixture.date)}</div>
             <div class="fixture-teams">
                 ${fixture.teams.home.name} vs ${fixture.teams.away.name}
             </div>
-            <div class="fixture-venue">${fixture.fixture.venue.name}</div>
+            <div class="fixture-venue">${fixture.fixture.venue.name} ${samplePill}</div>
         `;
         
         card.addEventListener('click', () => selectFixture(fixture, card));
@@ -142,6 +175,8 @@ async function selectFixture(fixture, cardElement) {
     selectedFixture = fixture;
     aiPredictionData = null;
     actualOddsData = null;
+    lastMatchData = null;
+    aiChatHistory = [];
     
     // Load team statistics
     showLoading();
@@ -177,11 +212,13 @@ async function selectFixture(fixture, cardElement) {
 // Display match information
 function displayMatchInfo(fixture, homeStats, awayStats) {
     const container = document.getElementById('matchInfo');
+    const sampleTag = isSampleFixture(fixture) ? '<div class="sample-tag">Sample Fixture Data</div>' : '';
     
     container.innerHTML = `
         <div class="match-header">
             ${fixture.teams.home.name} vs ${fixture.teams.away.name}
         </div>
+        ${sampleTag}
         <div style="text-align: center; color: #666; margin-bottom: 20px;">
             ${formatDate(fixture.fixture.date)} | ${fixture.fixture.venue.name}
         </div>
@@ -196,44 +233,94 @@ function displayMatchInfo(fixture, homeStats, awayStats) {
             </div>
         </div>
     `;
+    
+    aiChatHistory = [];
+    renderChatInterface();
 }
 
 // Format team statistics
 function formatTeamStats(stats) {
-    if (!stats || !stats.fixtures) {
+    if (!stats) {
         return '<p>Statistics not available</p>';
     }
-    
-    return `
-        <div class="stat-item">
-            <span>Matches Played:</span>
-            <strong>${stats.fixtures.played.total || 0}</strong>
-        </div>
-        <div class="stat-item">
-            <span>Wins:</span>
-            <strong>${stats.fixtures.wins.total || 0}</strong>
-        </div>
-        <div class="stat-item">
-            <span>Draws:</span>
-            <strong>${stats.fixtures.draws.total || 0}</strong>
-        </div>
-        <div class="stat-item">
-            <span>Losses:</span>
-            <strong>${stats.fixtures.loses.total || 0}</strong>
-        </div>
-        <div class="stat-item">
-            <span>Goals For:</span>
-            <strong>${stats.goals.for.total.total || 0}</strong>
-        </div>
-        <div class="stat-item">
-            <span>Goals Against:</span>
-            <strong>${stats.goals.against.total.total || 0}</strong>
-        </div>
-        <div class="stat-item">
-            <span>Form:</span>
-            <strong>${stats.form || 'N/A'}</strong>
-        </div>
-    `;
+
+    const renderBlock = (label, payload) => {
+        if (!payload) return '';
+        const played = payload.fixtures?.played?.total ?? 'N/A';
+        const wins = payload.fixtures?.wins?.total ?? 'N/A';
+        const draws = payload.fixtures?.draws?.total ?? 'N/A';
+        const loses = payload.fixtures?.loses?.total ?? 'N/A';
+        const goalsFor = payload.goals?.for?.total?.total ?? 'N/A';
+        const goalsAgainst = payload.goals?.against?.total?.total ?? 'N/A';
+        const form = payload.form || 'N/A';
+        const rank = payload.league?.rank ? `Rank: #${payload.league.rank}` : '';
+        const subLabel = payload.label ? ` • ${payload.label}` : '';
+
+        return `
+            <div class="stat-period">
+                <div class="stat-period-header">
+                    <span>${label}${subLabel}</span>
+                    <span>${rank}</span>
+                </div>
+                <div class="stat-item">
+                    <span>Matches Played:</span>
+                    <strong>${played}</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Wins:</span>
+                    <strong>${wins}</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Draws:</span>
+                    <strong>${draws}</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Losses:</span>
+                    <strong>${loses}</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Goals For / Against:</span>
+                    <strong>${goalsFor} / ${goalsAgainst}</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Form:</span>
+                    <strong>${form}</strong>
+                </div>
+            </div>
+        `;
+    };
+
+    const sections = [
+        renderBlock('2021 Season', stats.season2021),
+        renderBlock('2022 Pre-Match', stats.season2022PreMatch)
+    ].filter(Boolean);
+
+    return sections.length
+        ? `<div class="stat-periods">${sections.join('')}</div>`
+        : '<p>Statistics not available</p>';
+}
+
+function summarizeSeasonStats(period) {
+    if (!period) return null;
+    const wins = period.fixtures?.wins?.total ?? 0;
+    const draws = period.fixtures?.draws?.total ?? 0;
+    const loses = period.fixtures?.loses?.total ?? 0;
+
+    return {
+        season: period.league?.season ?? 'N/A',
+        rank: period.league?.rank ?? 'N/A',
+        form: period.form || 'N/A',
+        goalsFor: period.goals?.for?.total?.total ?? 0,
+        goalsAgainst: period.goals?.against?.total?.total ?? 0,
+        record: `${wins}W-${draws}D-${loses}L`
+    };
+}
+
+function buildStatsPayload(rawStats) {
+    return {
+        season2021: summarizeSeasonStats(rawStats?.season2021),
+        season2022PreMatch: summarizeSeasonStats(rawStats?.season2022PreMatch)
+    };
 }
 
 // Generate AI prediction
@@ -252,32 +339,28 @@ async function generatePrediction() {
         const homeStats = await homeStatsResponse.json();
         const awayStats = await awayStatsResponse.json();
         
+        const homeStatsPayload = buildStatsPayload(homeStats.data);
+        const awayStatsPayload = buildStatsPayload(awayStats.data);
+        
         const matchData = {
             homeTeam: selectedFixture.teams.home.name,
             awayTeam: selectedFixture.teams.away.name,
             date: formatDate(selectedFixture.fixture.date),
-            homeStats: {
-                position: homeStats.data?.league?.rank || 'N/A',
-                form: homeStats.data?.form || 'N/A',
-                goalsFor: homeStats.data?.goals?.for?.total?.total || 0,
-                goalsAgainst: homeStats.data?.goals?.against?.total?.total || 0,
-                homeRecord: `${homeStats.data?.fixtures?.wins?.home || 0}W-${homeStats.data?.fixtures?.draws?.home || 0}D-${homeStats.data?.fixtures?.loses?.home || 0}L`
-            },
-            awayStats: {
-                position: awayStats.data?.league?.rank || 'N/A',
-                form: awayStats.data?.form || 'N/A',
-                goalsFor: awayStats.data?.goals?.for?.total?.total || 0,
-                goalsAgainst: awayStats.data?.goals?.against?.total?.total || 0,
-                awayRecord: `${awayStats.data?.fixtures?.wins?.away || 0}W-${awayStats.data?.fixtures?.draws?.away || 0}D-${awayStats.data?.fixtures?.loses?.away || 0}L`
-            }
+            homeStats: homeStatsPayload,
+            awayStats: awayStatsPayload
         };
+        
+        lastMatchData = matchData;
         
         const response = await fetch('/api/prediction/predict', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(matchData)
+            body: JSON.stringify({
+                matchData,
+                model: selectedModel
+            })
         });
         
         const data = await response.json();
@@ -286,6 +369,7 @@ async function generatePrediction() {
             throw new Error(data.error || 'Failed to generate prediction');
         }
         
+        lastModelUsed = selectedModel;
         aiPredictionData = data.prediction;
         displayAIPrediction(data.prediction);
         
@@ -301,44 +385,7 @@ async function generatePrediction() {
     }
 }
 
-// Display AI prediction
-function displayAIPrediction(prediction) {
-    const container = document.getElementById('aiPrediction');
-    
-    container.innerHTML = `
-        <div class="odds-display">
-            <div class="odds-item">
-                <span class="odds-label">Home Win:</span>
-                <span class="odds-value">${prediction.homeWin.toFixed(2)}</span>
-            </div>
-            <div class="odds-item">
-                <span class="odds-label">Draw:</span>
-                <span class="odds-value">${prediction.draw.toFixed(2)}</span>
-            </div>
-            <div class="odds-item">
-                <span class="odds-label">Away Win:</span>
-                <span class="odds-value">${prediction.awayWin.toFixed(2)}</span>
-            </div>
-        </div>
-        <div class="confidence-meter">
-            <strong>Confidence Level:</strong>
-            <div class="confidence-bar">
-                <div class="confidence-fill" style="width: ${prediction.confidence}%">
-                    ${prediction.confidence}%
-                </div>
-            </div>
-        </div>
-        <div class="reasoning">
-            <strong>AI Reasoning:</strong><br>
-            ${prediction.reasoning}
-        </div>
-        <p style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9em;">
-            Generated by ${prediction.model} at ${new Date(prediction.timestamp).toLocaleTimeString()}
-        </p>
-    `;
-}
-
-// Load actual odds
+// Load actual odds (moneyline 1X2)
 async function loadActualOdds() {
     if (!selectedFixture) {
         showError('Please select a fixture first');
@@ -349,31 +396,40 @@ async function loadActualOdds() {
     try {
         const response = await fetch(`/api/football/odds/${selectedFixture.fixture.id}`);
         const data = await response.json();
+
+        console.log('Odds API response:', data);
         
-        if (!data.success || !data.data || data.data.length === 0) {
-            // If no odds available from API, show manual input option
+        if (!data.success || !data.data || !data.data.odds) {
+            if (data.message) console.warn(data.message);
             displayManualOddsInput();
             return;
         }
-        
-        // Extract 1X2 odds (Match Winner)
-        const oddsData = data.data[0];
-        const matchWinnerOdds = oddsData.bookmakers[0]?.bets?.find(bet => bet.name === 'Match Winner');
-        
-        if (!matchWinnerOdds) {
+
+        const market = data.data;
+        const odds = market.odds;
+
+        const homeWin = parseFloat(odds.homeWin);
+        const draw = parseFloat(odds.draw);
+        const awayWin = parseFloat(odds.awayWin);
+
+        if (!isFinite(homeWin) || !isFinite(draw) || !isFinite(awayWin)) {
+            console.warn('Parsed odds contain non-finite values from API-Football/sample source:', odds);
             displayManualOddsInput();
             return;
         }
-        
+
         actualOddsData = {
-            homeWin: parseFloat(matchWinnerOdds.values.find(v => v.value === 'Home')?.odd || 0),
-            draw: parseFloat(matchWinnerOdds.values.find(v => v.value === 'Draw')?.odd || 0),
-            awayWin: parseFloat(matchWinnerOdds.values.find(v => v.value === 'Away')?.odd || 0)
+            homeWinDecimal: homeWin,
+            drawDecimal: draw,
+            awayWinDecimal: awayWin,
+            homeWinAmerican: convertDecimalToAmerican(homeWin),
+            drawAmerican: convertDecimalToAmerican(draw),
+            awayWinAmerican: convertDecimalToAmerican(awayWin),
+            bookmakerName: market.bookmaker?.title || market.bookmaker?.key || 'Bookmaker'
         };
-        
+
         displayActualOdds(actualOddsData);
         
-        // Check if we can compare
         if (aiPredictionData) {
             compareOdds();
         }
@@ -385,15 +441,17 @@ async function loadActualOdds() {
     }
 }
 
-// Display manual odds input
+// Display manual odds input (moneyline)
 function displayManualOddsInput() {
     const container = document.getElementById('actualOdds');
     
     container.innerHTML = `
-        <p style="margin-bottom: 15px; text-align: center;">Enter betting odds manually:</p>
+        <p style="margin-bottom: 15px; text-align: center;">
+            No moneyline odds available from API. Enter bookmaker odds manually:
+        </p>
         <div class="odds-display">
             <div class="odds-item">
-                <span class="odds-label">Home Win:</span>
+                <span class="odds-label">Home Moneyline:</span>
                 <input type="number" id="manualHomeWin" step="0.01" placeholder="2.50" style="width: 80px; padding: 5px; font-size: 1.2em;">
             </div>
             <div class="odds-item">
@@ -401,7 +459,7 @@ function displayManualOddsInput() {
                 <input type="number" id="manualDraw" step="0.01" placeholder="3.20" style="width: 80px; padding: 5px; font-size: 1.2em;">
             </div>
             <div class="odds-item">
-                <span class="odds-label">Away Win:</span>
+                <span class="odds-label">Away Moneyline:</span>
                 <input type="number" id="manualAwayWin" step="0.01" placeholder="2.80" style="width: 80px; padding: 5px; font-size: 1.2em;">
             </div>
         </div>
@@ -414,11 +472,19 @@ function displayManualOddsInput() {
         const awayWin = parseFloat(document.getElementById('manualAwayWin').value);
         
         if (isNaN(homeWin) || isNaN(draw) || isNaN(awayWin)) {
-            showError('Please enter valid odds for all outcomes');
+            showError('Please enter valid decimal moneyline odds for all outcomes');
             return;
         }
         
-        actualOddsData = { homeWin, draw, awayWin };
+        actualOddsData = { 
+            homeWinDecimal: homeWin,
+            drawDecimal: draw,
+            awayWinDecimal: awayWin,
+            homeWinAmerican: convertDecimalToAmerican(homeWin),
+            drawAmerican: convertDecimalToAmerican(draw),
+            awayWinAmerican: convertDecimalToAmerican(awayWin),
+            bookmakerName: 'Manual Entry' 
+        };
         displayActualOdds(actualOddsData);
         
         if (aiPredictionData) {
@@ -434,22 +500,139 @@ function displayActualOdds(odds) {
     container.innerHTML = `
         <div class="odds-display">
             <div class="odds-item">
-                <span class="odds-label">Home Win:</span>
-                <span class="odds-value">${odds.homeWin.toFixed(2)}</span>
+                <span class="odds-label">Home Moneyline:</span>
+                <span class="odds-value">${formatMoneylineWithProbability(odds.homeWinDecimal)}</span>
             </div>
             <div class="odds-item">
                 <span class="odds-label">Draw:</span>
-                <span class="odds-value">${odds.draw.toFixed(2)}</span>
+                <span class="odds-value">${formatMoneylineWithProbability(odds.drawDecimal)}</span>
             </div>
             <div class="odds-item">
-                <span class="odds-label">Away Win:</span>
-                <span class="odds-value">${odds.awayWin.toFixed(2)}</span>
+                <span class="odds-label">Away Moneyline:</span>
+                <span class="odds-value">${formatMoneylineWithProbability(odds.awayWinDecimal)}</span>
             </div>
         </div>
         <p style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9em;">
-            Bookmaker odds
+            Moneyline odds from ${odds.bookmakerName || 'bookmaker'}
         </p>
     `;
+}
+
+// Display AI prediction
+function displayAIPrediction(prediction) {
+    const container = document.getElementById('aiPrediction');
+    
+    container.innerHTML = `
+        <div class="odds-display">
+            <div class="odds-item">
+                <span class="odds-label">Home Moneyline:</span>
+                <span class="odds-value">${formatMoneylineWithProbability(prediction.homeWin)}</span>
+            </div>
+            <div class="odds-item">
+                <span class="odds-label">Draw:</span>
+                <span class="odds-value">${formatMoneylineWithProbability(prediction.draw)}</span>
+            </div>
+            <div class="odds-item">
+                <span class="odds-label">Away Moneyline:</span>
+                <span class="odds-value">${formatMoneylineWithProbability(prediction.awayWin)}</span>
+            </div>
+        </div>
+        <div class="confidence-meter">
+            <strong>Confidence Level:</strong>
+            <div class="confidence-bar">
+                <div class="confidence-fill" style="width: ${prediction.confidence}%">
+                    ${prediction.confidence}%
+                </div>
+            </div>
+        </div>
+        <p class="prediction-note">
+            Curious about these numbers? Use the “Ask the AI Why” chat to dig deeper.
+        </p>
+        <p style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9em;">
+            Generated by ${prediction.model} at ${new Date(prediction.timestamp).toLocaleTimeString()}
+        </p>
+    `;
+    renderChatInterface();
+}
+
+function renderChatInterface() {
+    const container = document.getElementById('aiExplanation');
+    if (!container) return;
+
+    const historyHtml = aiChatHistory.length
+        ? aiChatHistory.map(entry => `
+            <div class="chat-bubble ${entry.role}">
+                <strong>${entry.role === 'user' ? 'You' : 'AI'}:</strong>
+                <p>${entry.message.replace(/\n+/g, '<br>')}</p>
+            </div>
+        `).join('')
+        : '<p class="placeholder">Generate a prediction first, then ask your own follow-up questions here.</p>';
+
+    const disabled = aiPredictionData ? '' : 'disabled';
+
+    container.innerHTML = `
+        <div class="chat-history">${historyHtml}</div>
+        <div class="chat-input">
+            <textarea id="chatQuestion" placeholder="Ask the AI why it priced the draw this way..." rows="2" ${disabled}></textarea>
+            <button id="sendChatBtn" class="btn btn-primary" ${disabled}>Send</button>
+        </div>
+    `;
+
+    if (!aiPredictionData) return;
+
+    document.getElementById('sendChatBtn').addEventListener('click', sendChatQuestion);
+}
+
+async function sendChatQuestion() {
+    const textarea = document.getElementById('chatQuestion');
+    const question = textarea.value.trim();
+    if (!question) {
+        showError('Enter a question for the AI.');
+        return;
+    }
+    aiChatHistory.push({ role: 'user', message: question });
+    renderChatInterface();
+
+    textarea.value = '';
+    await requestAIPredictionExplanation(question);
+}
+
+async function requestAIPredictionExplanation(question) {
+    if (!aiPredictionData || !lastMatchData) {
+        showError('Generate a prediction first.');
+        return;
+    }
+
+    showLoading();
+    try {
+        const response = await fetch('/api/prediction/explain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                matchData: lastMatchData,
+                prediction: aiPredictionData,
+                question,
+                model: lastModelUsed || selectedModel
+            })
+        });
+
+        const data = await response.json();
+        if (!data.success || !data.explanation) {
+            throw new Error(data.error || 'Failed to fetch explanation');
+        }
+
+        aiChatHistory.push({
+            role: 'assistant',
+            message: data.explanation,
+            meta: { model: data.model, timestamp: data.timestamp }
+        });
+        renderChatInterface();
+    } catch (error) {
+        showError(error.message);
+        console.error('Error requesting explanation:', error);
+    } finally {
+        hideLoading();
+    }
 }
 
 // Compare odds
@@ -467,7 +650,11 @@ async function compareOdds() {
             },
             body: JSON.stringify({
                 llmPrediction: aiPredictionData,
-                actualOdds: actualOddsData
+                actualOdds: {
+                    homeWin: actualOddsData.homeWinDecimal,
+                    draw: actualOddsData.drawDecimal,
+                    awayWin: actualOddsData.awayWinDecimal
+                }
             })
         });
         
@@ -571,6 +758,27 @@ function displayComparison(data) {
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     checkAPIStatus();
-    
+    initModelSelector();
     document.getElementById('loadFixturesBtn').addEventListener('click', loadFixtures);
 });
+
+function initModelSelector() {
+    const select = document.getElementById('modelSelect');
+    const label = document.getElementById('modelSelectLabelValue');
+    if (!select) return;
+
+    const updateLabel = () => {
+        if (label) {
+            const option = select.options[select.selectedIndex];
+            label.textContent = option?.dataset?.desc || option?.text || 'Qwen3 8B';
+        }
+    };
+
+    select.value = selectedModel;
+    updateLabel();
+
+    select.addEventListener('change', () => {
+        selectedModel = select.value;
+        updateLabel();
+    });
+}

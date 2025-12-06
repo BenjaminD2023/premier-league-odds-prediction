@@ -9,18 +9,14 @@ npm install
 ## Step 2: Get Your API Keys
 
 ### API-Football (Required)
-1. Visit: https://rapidapi.com/api-sports/api/api-football
-2. Click "Subscribe to Test"
-3. Choose a plan (Basic free plan includes 100 requests/day)
-4. Go to "Endpoints" and you'll see your API key in the code snippet
-5. Copy the `X-RapidAPI-Key` value
+1. Visit: https://www.api-football.com/
+2. Create an account and choose a plan (free tier includes 100 requests/day)
+3. Copy your API key from the dashboard
+4. The key must have access to the `/fixtures`, `/teams/statistics`, and `/odds` endpoints
 
-### OpenAI (Required)
-1. Visit: https://platform.openai.com/api-keys
-2. Sign in or create an account
-3. Set up billing (required for API access)
-4. Click "Create new secret key"
-5. Copy the key immediately (you can't view it again)
+### Qwen (Required)
+1. Visit: https://dashscope.aliyun.com/
+2. Create an API key
 
 ## Step 3: Configure Environment
 
@@ -29,8 +25,8 @@ npm install
 cp .env.example .env
 
 # Edit .env and replace the placeholder values:
-# - Replace 'your_api_football_key_here' with your RapidAPI key
-# - Replace 'your_openai_api_key_here' with your OpenAI key
+# - Replace 'your_api_football_key_here' with your API-Football key
+# - Replace 'your_qwen_api_key_here' with your Qwen key
 ```
 
 ## Step 4: Run the Application
@@ -71,7 +67,6 @@ The homepage will show API status:
 
 ```env
 FOOTBALL_API_KEY=abc123def456ghi789
-FOOTBALL_API_HOST=api-football-v1.p.rapidapi.com
-OPENAI_API_KEY=sk-proj-abc123...
+QWEN_API_KEY=sk-demo-123...
 PORT=3000
 ```

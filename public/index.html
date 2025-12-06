@@ -10,7 +10,7 @@
     <div class="container">
         <header>
             <h1>⚽ Premier League Odds Prediction</h1>
-            <p class="subtitle">AI-Powered Betting Odds Analysis using LLMs</p>
+            <p class="subtitle">AI-Powered Moneyline Odds Analysis using LLMs</p>
         </header>
 
         <div class="api-status" id="apiStatus">
@@ -27,12 +27,25 @@
             </div>
         </div>
 
+        <div id="sampleDataBanner" class="sample-banner" style="display: none;">
+            📚 Displaying curated sample fixtures, statistics, and odds for demo purposes.
+        </div>
+
         <section class="controls">
-            <button id="loadFixturesBtn" class="btn btn-primary">Load 2022 Season Fixtures</button>
+            <button id="loadFixturesBtn" class="btn btn-primary">Load Upcoming Fixtures</button>
+            <div class="model-selector">
+                <label for="modelSelect">LLM Model</label>
+                <select id="modelSelect">
+                    <option value="qwen-turbo" data-desc="Fast & cost-efficient">Qwen Turbo</option>
+                    <option value="qwen3-max" data-desc="Balanced accuracy vs. latency">Qwen3 Max</option>
+                    <option value="qwen3-8b" data-desc="Most accurate (thinking disabled automatically)">Qwen3 8B</option>
+                </select>
+                <small>Current: <span id="modelSelectLabelValue">Qwen3 8B</span></small>
+            </div>
             <div class="info-box">
                 <p><strong>How it works:</strong></p>
                 <ol>
-                    <li>Load Premier League fixtures from 2022 season</li>
+                    <li>Load current Premier League fixtures (fallback to a sample window if none found)</li>
                     <li>Select a match to analyze</li>
                     <li>AI analyzes team statistics and generates odds predictions</li>
                     <li>Compare AI predictions with actual betting odds</li>
@@ -41,7 +54,7 @@
         </section>
 
         <section class="fixtures-section" id="fixturesSection" style="display: none;">
-            <h2>2022 Season Fixtures</h2>
+            <h2>Upcoming Fixtures</h2>
             <div id="fixturesContainer" class="fixtures-container">
                 <!-- Fixtures will be loaded here -->
             </div>
@@ -55,17 +68,24 @@
 
             <div class="prediction-container">
                 <div class="prediction-box">
-                    <h3>🤖 AI Prediction</h3>
+                    <h3>🤖 AI Moneyline Prediction</h3>
                     <div id="aiPrediction" class="prediction-content">
-                        <button id="generatePredictionBtn" class="btn btn-success">Generate AI Prediction</button>
+                        <button id="generatePredictionBtn" class="btn btn-success">Generate AI Moneyline</button>
                     </div>
                 </div>
 
                 <div class="prediction-box">
-                    <h3>📊 Actual Betting Odds</h3>
+                    <h3>🧠 Ask the AI Why</h3>
+                    <div id="aiExplanation" class="prediction-content">
+                        <p class="placeholder">Generate a prediction first to ask for a deeper explanation.</p>
+                    </div>
+                </div>
+
+                <div class="prediction-box">
+                    <h3>📊 Actual Moneyline Odds</h3>
                     <div id="actualOdds" class="prediction-content">
-                        <p class="placeholder">Load odds from bookmakers</p>
-                        <button id="loadOddsBtn" class="btn btn-secondary">Load Actual Odds</button>
+                        <p class="placeholder">Load moneyline odds from bookmakers</p>
+                        <button id="loadOddsBtn" class="btn btn-secondary">Load Actual Moneyline Odds</button>
                     </div>
                 </div>
             </div>

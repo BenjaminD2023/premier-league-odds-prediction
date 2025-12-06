@@ -1,12 +1,13 @@
 # Premier League Odds Prediction Website
 
-An AI-powered web application that demonstrates how modern Large Language Models (LLMs) can predict Premier League betting odds and compares their accuracy against actual bookmaker odds.
+An AI-powered web application that demonstrates how modern Large Language Models (LLMs) can predict Premier League **moneyline (1X2)** betting odds and compares their accuracy against actual bookmaker odds.
 
 ## 🚀 Features
 
 - **Live Fixture Data**: Fetches upcoming Premier League matches from API-Football
-- **AI-Powered Predictions**: Uses Alibaba Cloud's Qwen LLM to analyze team statistics and generate betting odds
-- **Accuracy Comparison**: Compares AI predictions with actual betting odds to show LLM accuracy
+- **Automatic Moneyline Odds**: Loads home/draw/away moneyline odds directly from **API-Football Match Winner (1X2)** markets and displays them in American (+/-) moneyline format (converted from decimal)
+- **AI-Powered Predictions**: Uses Alibaba Cloud's Qwen LLM to analyze team statistics and generate moneyline betting odds
+- **Accuracy Comparison**: Compares AI predictions with actual moneyline odds to show LLM accuracy
 - **Beautiful UI**: Modern, responsive web interface with real-time updates
 - **Team Statistics**: Displays comprehensive team stats including form, goals, and records
 
@@ -17,12 +18,12 @@ Before running this application, you'll need:
 1. **Node.js** (version 14 or higher)
    - Node.js 18+ is recommended for built-in fetch API support
    - The app currently uses node-fetch v2 for compatibility
-2. **API-Football API Key** (direct access, not through RapidAPI)
+2. **API-Football API Key** (direct access, not through RapidAPI) – for fixtures, statistics, and moneyline odds
 3. **Qwen API Key** from Alibaba Cloud DashScope
 
 ## 🔑 Getting API Keys
 
-### API-Football (Sports Data)
+### API-Football (Sports Data & Odds)
 
 1. Go to [API-Football](https://www.api-football.com/)
 2. Sign up for a free account
@@ -90,11 +91,12 @@ http://localhost:3000
 ## 📖 How to Use
 
 1. **Check API Status**: The homepage displays whether your API keys are configured correctly
-2. **Load Fixtures**: Click "Load Upcoming Fixtures" to fetch the next Premier League matches
+2. **Load Fixtures**: Click "Load Upcoming Fixtures" to fetch Premier League matches
 3. **Select a Match**: Click on any fixture card to view detailed team statistics
-4. **Generate AI Prediction**: Click "Generate AI Prediction" to let the LLM analyze the match and predict odds
-5. **Load Actual Odds**: Click "Load Actual Odds" to fetch bookmaker odds (or enter them manually)
-6. **View Comparison**: The system automatically compares AI predictions with actual odds and displays accuracy metrics
+4. **Generate AI Prediction**: Click "Generate AI Moneyline" to let the LLM analyze the match and predict moneyline odds
+5. **Load Actual Odds**: Click "Load Actual Moneyline Odds" to fetch bookmaker odds from API-Football  
+   - If no odds are available for that fixture, you’ll be prompted to enter odds manually as a fallback
+6. **View Comparison**: The system automatically compares AI moneyline predictions with actual bookmaker odds and displays accuracy metrics
 
 ## 🏗️ Project Structure
 
@@ -122,7 +124,7 @@ premier-league-odds-prediction/
 - `GET /api/football/fixture/:id` - Get specific fixture details
 - `GET /api/football/teams/:id/statistics` - Get team statistics
 - `GET /api/football/standings` - Get league standings
-- `GET /api/football/odds/:fixtureId` - Get betting odds
+- `GET /api/football/odds/:fixtureId` - Get moneyline odds (Match Winner 1X2) from API-Football
 
 ### AI Predictions
 - `POST /api/prediction/predict` - Generate LLM odds prediction (using Qwen)
@@ -138,10 +140,10 @@ premier-league-odds-prediction/
 The application uses Alibaba Cloud's Qwen by default, but you can modify `api/prediction.js` to use other LLM providers if needed.
 
 ### Qwen Model Selection
-You can change the Qwen model in `api/prediction.js`:
 ```javascript
-model: 'qwen-turbo'  // Options: 'qwen-turbo', 'qwen-plus', 'qwen-max'
+model: 'qwen3-8b'  // Default: qwen3-8b
 ```
+You can now switch between **qwen-turbo**, **qwen3-max**, and **qwen3-8b** directly from the UI before generating predictions.
 
 ### Styling
 All styles are in `public/css/style.css`. The design uses CSS custom properties (variables) for easy theming:

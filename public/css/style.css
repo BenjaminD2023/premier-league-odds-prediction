@@ -220,6 +220,10 @@ header h1 {
     font-size: 0.9em;
     color: var(--text-secondary);
     text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    align-items: center;
 }
 
 .match-info {
@@ -267,6 +271,27 @@ header h1 {
     border-bottom: none;
 }
 
+.stat-periods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-period {
+    background: white;
+    border-radius: 8px;
+    padding: 12px 15px;
+    box-shadow: inset 0 0 0 1px var(--border-color);
+}
+
+.stat-period-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
 .prediction-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -311,9 +336,12 @@ header h1 {
 }
 
 .odds-value {
-    font-size: 1.3em;
+    font-size: 1.1em;
     font-weight: 700;
     color: var(--secondary-color);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .confidence-meter {
@@ -527,6 +555,121 @@ footer {
         transform: translateX(400px);
         opacity: 0;
     }
+}
+
+.sample-banner {
+    background: #fff7e6;
+    border: 1px solid #ffd27f;
+    color: #b26a00;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow);
+    font-weight: 600;
+}
+
+.sample-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 0.75em;
+    border-radius: 999px;
+    background: #ffe3f0;
+    color: var(--secondary-color);
+    font-weight: 700;
+}
+
+.sample-tag {
+    text-align: center;
+    background: #e6f3ff;
+    color: #0056b3;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-bottom: 15px;
+    display: inline-block;
+}
+
+.chat-history {
+    max-height: 260px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 6px;
+    margin-bottom: 15px;
+}
+
+.chat-bubble {
+    padding: 12px 15px;
+    border-radius: 8px;
+    background: var(--background);
+    box-shadow: inset 0 0 0 1px var(--border-color);
+}
+
+.chat-bubble.user {
+    background: #e8f4ff;
+    border-color: #b3d4ff;
+}
+
+.chat-bubble.assistant {
+    background: #f9f1ff;
+    border-color: #dec6ff;
+}
+
+.chat-input {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-input textarea {
+    resize: none;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    font-family: inherit;
+}
+
+.chat-input textarea:disabled {
+    opacity: 0.6;
+}
+
+.chat-input button {
+    align-self: flex-end;
+}
+
+.prediction-note {
+    margin-top: 15px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.model-selector {
+    margin: 15px auto 5px;
+    max-width: 360px;
+    text-align: left;
+}
+
+.model-selector label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+    color: var(--primary-color);
+}
+
+.model-selector select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    font-size: 1em;
+}
+
+.model-selector small {
+    display: block;
+    margin-top: 6px;
+    color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {

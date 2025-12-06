@@ -1,39 +1,67 @@
 const express = require('express');
 const router = express.Router();
-
-// Use node-fetch v2 for compatibility with CommonJS
 const fetch = require('node-fetch');
+
+const MODEL_CONFIG = {
+    'qwen-turbo': { id: 'qwen-turbo', disableThinking: false },
+    'qwen3-max': { id: 'qwen3-max', disableThinking: false },
+    'qwen3-8b': { id: 'qwen3-8b', disableThinking: true }
+};
+const DEFAULT_MODEL = MODEL_CONFIG['qwen3-8b'];
+
+/**
+ * Helper to safely parse JSON emitted by Qwen models
+ */
+function parseModelJSON(content) {
+    if (!content || typeof content !== 'string') {
+        throw new Error('Model returned an empty response. Please try again.');
+    }
+
+    const trimmed = content.trim();
+    if (/^too many/i.test(trimmed)) {
+        throw new Error('Qwen rate limit reached. Wait a moment or choose a different model.');
+    }
+
+    const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+        throw new Error('Model response did not contain JSON. Please retry or switch models.');
+    }
+
+    try {
+        return JSON.parse(jsonMatch[0]);
+    } catch (err) {
+        console.warn('Failed to parse model JSON:', err, 'Raw snippet:', trimmed.slice(0, 200));
+        throw new Error('Model response was not valid JSON. Please retry or switch models.');
+    }
+}
+
+/**
+ * Helper function to resolve model configuration
+ */
+function resolveModelConfig(requested) {
+    return MODEL_CONFIG[requested] || DEFAULT_MODEL;
+}
 
 /**
  * Helper function to make Qwen API requests
  */
-async function makeLLMPrediction(matchData) {
+async function makeLLMPrediction(matchData, modelConfig) {
     const apiKey = process.env.QWEN_API_KEY;
     
     if (!apiKey || apiKey === 'your_qwen_api_key_here') {
         throw new Error('Qwen API key not configured. Please set QWEN_API_KEY in .env file');
     }
     
-    const prompt = `You are a sports betting analyst. Analyze the following Premier League match and predict betting odds in decimal format.
+    const prompt = `You are a sports betting analyst. Analyze the provided Premier League match using ONLY the statistics supplied below. 
+Rules:
+1. Do NOT use online search, browsing tools, or any external knowledge of actual bookmaker odds or final match outcomes.
+2. Base your reasoning strictly on the historical (2021 season) and pre-match 2022 statistics that stop before kickoff.
+3. Return decimal odds only.
 
-Match: ${matchData.homeTeam} vs ${matchData.awayTeam}
-Date: ${matchData.date}
+Match context:
+${JSON.stringify(matchData, null, 2)}
 
-${matchData.homeTeam} Statistics:
-- League Position: ${matchData.homeStats?.position || 'N/A'}
-- Form (last 5): ${matchData.homeStats?.form || 'N/A'}
-- Goals For: ${matchData.homeStats?.goalsFor || 'N/A'}
-- Goals Against: ${matchData.homeStats?.goalsAgainst || 'N/A'}
-- Home Record: ${matchData.homeStats?.homeRecord || 'N/A'}
-
-${matchData.awayTeam} Statistics:
-- League Position: ${matchData.awayStats?.position || 'N/A'}
-- Form (last 5): ${matchData.awayStats?.form || 'N/A'}
-- Goals For: ${matchData.awayStats?.goalsFor || 'N/A'}
-- Goals Against: ${matchData.awayStats?.goalsAgainst || 'N/A'}
-- Away Record: ${matchData.awayStats?.awayRecord || 'N/A'}
-
-Please provide your prediction in the following JSON format only, no additional text:
+Respond with JSON in this exact shape:
 {
   "homeWin": <decimal odds>,
   "draw": <decimal odds>,
@@ -42,6 +70,9 @@ Please provide your prediction in the following JSON format only, no additional 
   "reasoning": "<brief explanation>"
 }`;
 
+    const parameters = { result_format: 'message' };
+    if (modelConfig.disableThinking) parameters.enable_thinking = false;
+
     const response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
         method: 'POST',
         headers: {
@@ -49,7 +80,7 @@ Please provide your prediction in the following JSON format only, no additional 
             'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-            model: 'qwen-turbo',
+            model: modelConfig.id,
             input: {
                 messages: [
                     {
@@ -62,9 +93,7 @@ Please provide your prediction in the following JSON format only, no additional 
                     }
                 ]
             },
-            parameters: {
-                result_format: 'message'
-            }
+            parameters
         })
     });
     
@@ -78,18 +107,61 @@ Please provide your prediction in the following JSON format only, no additional 
     // Extract content from Qwen API response
     // Qwen API can return content in different formats depending on the parameters
     const content = data.output?.choices?.[0]?.message?.content || data.output?.text;
-    
-    if (!content) {
-        throw new Error(`No content found in Qwen API response. Response structure: ${JSON.stringify(data.output || {})}`);
+    return parseModelJSON(content);
+}
+
+/**
+ * Helper function to explain Qwen predictions
+ */
+async function makeLLMExplanation(matchData, prediction, question = '', modelConfig = DEFAULT_MODEL) {
+    const apiKey = process.env.QWEN_API_KEY;
+    if (!apiKey || apiKey === 'your_qwen_api_key_here') {
+        throw new Error('Qwen API key not configured. Please set QWEN_API_KEY in .env file');
     }
-    
-    // Extract JSON from the response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-        throw new Error('Could not parse LLM response');
+
+    const prompt = `You previously produced the decimal moneyline odds below for this Premier League match. The user now wants deeper insight using ONLY the historical stats provided (no web searches or bookmaker data). Reference the prediction values explicitly.
+
+Match context:
+${JSON.stringify(matchData, null, 2)}
+
+Your prediction:
+${JSON.stringify(prediction, null, 2)}
+
+User question: ${question || 'Explain the prediction in more detail.'}
+
+Respond with concise paragraphs (no JSON) that answer the user question and include:
+1. Key statistical drivers for each outcome.
+2. Why the specific odds values make sense relative to each other.
+3. Any caveats or data limitations.`;
+
+    const parameters = { result_format: 'message' };
+    if (modelConfig.disableThinking) parameters.enable_thinking = false;
+
+    const response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            model: modelConfig.id,
+            input: {
+                messages: [
+                    { role: 'system', content: 'You are a professional football betting analyst. Explain predictions clearly using only provided data.' },
+                    { role: 'user', content: prompt }
+                ]
+            },
+            parameters
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Qwen API error: ${error.message || response.statusText}`);
     }
-    
-    return JSON.parse(jsonMatch[0]);
+
+    const data = await response.json();
+    return data.output?.choices?.[0]?.message?.content || data.output?.text || 'No explanation available.';
 }
 
 /**
@@ -98,23 +170,20 @@ Please provide your prediction in the following JSON format only, no additional 
  */
 router.post('/predict', async (req, res) => {
     try {
-        const matchData = req.body;
-        
-        if (!matchData.homeTeam || !matchData.awayTeam) {
-            return res.status(400).json({
-                success: false,
-                error: 'Missing required match data'
-            });
+        const { matchData, model } = req.body || {};
+        if (!matchData?.homeTeam || !matchData?.awayTeam) {
+            return res.status(400).json({ success: false, error: 'Missing required match data' });
         }
-        
-        const prediction = await makeLLMPrediction(matchData);
-        
+
+        const modelConfig = resolveModelConfig(model);
+        const prediction = await makeLLMPrediction(matchData, modelConfig);
+
         res.json({
             success: true,
             prediction: {
                 ...prediction,
                 timestamp: new Date().toISOString(),
-                model: 'qwen-turbo'
+                model: modelConfig.id
             }
         });
     } catch (error) {
@@ -189,6 +258,32 @@ router.post('/compare', async (req, res) => {
             success: false,
             error: error.message
         });
+    }
+});
+
+/**
+ * POST /api/prediction/explain
+ * Explain LLM prediction
+ */
+router.post('/explain', async (req, res) => {
+    try {
+        const { matchData, prediction, question, model } = req.body || {};
+        if (!matchData || !prediction) {
+            return res.status(400).json({ success: false, error: 'Missing match data or prediction context' });
+        }
+
+        const modelConfig = resolveModelConfig(model);
+        const explanation = await makeLLMExplanation(matchData, prediction, question, modelConfig);
+
+        res.json({
+            success: true,
+            explanation,
+            model: modelConfig.id,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error generating explanation:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 

@@ -2,7 +2,7 @@
 
 ## ✅ Complete Implementation
 
-This repository now contains a fully functional Premier League Odds Prediction website that demonstrates AI/LLM capabilities in predicting betting odds.
+This repository now contains a fully functional Premier League Odds Prediction website that demonstrates AI/LLM capabilities in predicting **moneyline (1X2) betting odds**.
 
 ## 🎯 What Was Built
 
@@ -12,14 +12,14 @@ This repository now contains a fully functional Premier League Odds Prediction w
 - **Design**: Premier League themed with purple/pink color scheme
 
 ### 2. API Integrations
-- **API-Football** (via RapidAPI): Provides Premier League data
+- **API-Football**: Provides Premier League data
   - Upcoming fixtures
   - Team statistics
   - Historical performance
-  - Betting odds (optional)
-- **OpenAI GPT-4**: AI predictions
+  - Moneyline betting odds (Match Winner 1X2)
+- **Qwen LLM**: AI predictions
   - Analyzes team statistics
-  - Generates betting odds predictions
+  - Generates moneyline odds predictions
   - Provides reasoning for predictions
 
 ### 3. Key Features
@@ -106,10 +106,10 @@ premier-league-odds-prediction/
    - Goals scored and conceded
    - Home/away records
 
-2. **Prediction**: Uses GPT-4 to:
+2. **Prediction**: Uses Qwen to:
    - Analyze statistical patterns
    - Consider team form and performance
-   - Generate decimal odds for Home Win, Draw, Away Win
+   - Generate **decimal moneyline odds** for Home Win, Draw, Away Win (1X2)
    - Provide confidence level
    - Explain reasoning
 
